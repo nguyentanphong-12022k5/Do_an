@@ -30,6 +30,17 @@ export class DeviceController {
     }
   }
 
+  // API Xóa thiết bị
+  public async deleteDevice(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      await this.deviceService.deleteDevice(id);
+      res.status(200).json({ success: true, message: 'Đã xóa thiết bị thành công' });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
   public async scanNetwork(req: Request, res: Response): Promise<void> {
     try {
       const { subnetBase } = req.body;
@@ -44,12 +55,11 @@ export class DeviceController {
     }
   }
 
-  // API lấy dữ liệu lịch sử để Frontend vẽ biểu đồ (Chart)
   public async getDeviceMetrics(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const metricType = (req.query.metricType as string) || 'CPU';
-      const limit = parseInt((req.query.limit as string) || '30'); // Mặc định lấy 30 điểm gần nhất
+      const limit = parseInt((req.query.limit as string) || '30');
 
       const history = await this.metricRepo.getMetricsHistory(id, metricType, limit);
       res.status(200).json({ success: true, data: history });

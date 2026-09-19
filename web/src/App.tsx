@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Activity, Server, ShieldCheck, ShieldAlert, X } from 'lucide-react';
+import { Activity, Server, ShieldCheck, ShieldAlert, X, Trash2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 function App() {
@@ -23,6 +23,25 @@ function App() {
       .catch(error => console.error("Lỗi khi kết nối API:", error));
   };
 
+  // Nút Xóa thiết bị
+  const handleDeleteDevice = (id: string, name: string) => {
+    const isConfirm = window.confirm(`Bạn có chắc chắn muốn XÓA thiết bị "${name}" không?\nLưu ý: Toàn bộ lịch sử biểu đồ của máy này cũng sẽ bị xóa vĩnh viễn.`);
+    
+    if (isConfirm) {
+      axios.delete(`http://localhost:3000/api/v1/devices/${id}`)
+        .then(response => {
+          if(response.data.success) {
+            alert(`Đã xóa thành công ${name}`);
+            fetchDevices(); // Tải lại danh sách
+          }
+        })
+        .catch(error => {
+          console.error("Lỗi xóa thiết bị:", error);
+          alert('Có lỗi xảy ra khi xóa thiết bị!');
+        });
+    }
+  };
+
   const openChartModal = (device: any) => {
     setSelectedDevice(device);
     fetchChartData(device.id, 'CPU');
@@ -33,7 +52,6 @@ function App() {
     axios.get(`http://localhost:3000/api/v1/devices/${id}/metrics?metricType=${type}&limit=30`)
       .then(response => {
         if(response.data.success) {
-          // Format lại timestamp cho dễ đọc trên biểu đồ
           const formattedData = response.data.data.map((item: any) => ({
             ...item,
             timeLabel: new Date(item.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute:'2-digit' })
@@ -66,9 +84,18 @@ function App() {
           </div>
         ) : (
           devices.map((device: any) => (
-            <div key={device.id} style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', borderLeft: device.status === 'UP' ? '4px solid #10b981' : '4px solid #ef4444', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+            <div key={device.id} style={{ position: 'relative', backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', borderLeft: device.status === 'UP' ? '4px solid #10b981' : '4px solid #ef4444', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
               
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              {/* Nút Xóa (Góc trên bên phải) */}
+              <button 
+                onClick={() => handleDeleteDevice(device.id, device.name)}
+                style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}
+                title="Xóa thiết bị này"
+              >
+                <Trash2 size={20} className="hover:text-red-500" />
+              </button>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingRight: '2rem' }}>
                 <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', color: '#111827' }}>
                   <Server size={20} color="#4b5563" />
                   {device.name}
@@ -114,7 +141,7 @@ function App() {
 
       {/* Modal Biểu đồ */}
       {selectedDevice && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', width: '800px', maxWidth: '90%' }}>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>

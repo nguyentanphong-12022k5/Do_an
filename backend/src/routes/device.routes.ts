@@ -6,8 +6,9 @@ const deviceController = new DeviceController();
 
 router.get('/', deviceController.getAllDevices.bind(deviceController));
 router.post('/', deviceController.createDevice.bind(deviceController));
+router.delete('/:id', deviceController.deleteDevice.bind(deviceController)); // Mở cổng API DELETE
 router.post('/scan', deviceController.scanNetwork.bind(deviceController));
-router.get('/:id/metrics', deviceController.getDeviceMetrics.bind(deviceController)); // API Lấy Dữ liệu vẽ Biểu đồ
+router.get('/:id/metrics', deviceController.getDeviceMetrics.bind(deviceController));
 router.get('/:id/predict', deviceController.predictDeviceExhaustion.bind(deviceController));
 
 export default router;

@@ -1,19 +1,36 @@
 import { DeviceRepository } from '../repositories/device.repository';
 import { CreateDeviceDto } from '../dtos/device.dto';
+import { Device } from '../models/device.model';
 
 export class DeviceService {
   private deviceRepository = new DeviceRepository();
 
-  public async getAllDevices() {
-    // Business logic: Ví dụ kiểm tra quyền (RBAC) trước khi lấy dữ liệu
-    return await this.deviceRepository.findAll();
+  public async getAllDevices(): Promise<Device[]> {
+    return this.deviceRepository.findAll();
   }
 
-  public async createDevice(dto: CreateDeviceDto) {
-    // Business logic: Validate định dạng IP hoặc kiểm tra trùng lặp
-    if (!dto.ipAddress) {
-      throw new Error('IP Address is required');
+  public async createDevice(dto: CreateDeviceDto): Promise<Device> {
+    // Basic validation
+    if (!dto.name || !dto.ipAddress) {
+      throw new Error('Name and IP Address are required');
     }
-    return await this.deviceRepository.create(dto);
+
+    const deviceData = {
+      name: dto.name,
+      ip_address: dto.ipAddress,
+      type: dto.type || 'UNKNOWN',
+      snmp_community: dto.snmpCommunity || 'public',
+      ssh_user: dto.sshUser
+    };
+
+    return this.deviceRepository.create(deviceData);
+  }
+
+  // Hàm xử lý logic Xóa thiết bị
+  public async deleteDevice(id: string): Promise<void> {
+    const success = await this.deviceRepository.delete(id);
+    if (!success) {
+      throw new Error('Không tìm thấy thiết bị để xóa hoặc đã bị xóa trước đó.');
+    }
   }
 }
