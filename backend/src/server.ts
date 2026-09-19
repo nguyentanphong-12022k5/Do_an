@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import deviceRoutes from './routes/device.routes';
+import netopsRoutes from './routes/netops.routes';
 import { PollerWorker } from './workers/poller.worker';
 
 // Nạp file .env
@@ -16,6 +17,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/v1/devices', deviceRoutes);
+app.use('/api/v1/netops', netopsRoutes);
 
 // Health Check API
 app.get('/health', (req, res) => {
