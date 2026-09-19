@@ -12,13 +12,16 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
-    "pg": "^8.11.0"
+    "net-snmp": "^3.29.1",
+    "pg": "^8.11.0",
+    "ping": "^1.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.11.0",
+    "@types/ping": "^0.4.4",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.5.0"
   }
