@@ -30,7 +30,6 @@ export class DeviceController {
     }
   }
 
-  // API Xóa thiết bị
   public async deleteDevice(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -44,12 +43,17 @@ export class DeviceController {
   public async scanNetwork(req: Request, res: Response): Promise<void> {
     try {
       const { subnetBase } = req.body;
-      if (!subnetBase) {
-        res.status(400).json({ success: false, message: 'Thiếu subnetBase' });
-        return;
+      let results = [];
+
+      // Phân luồng: Nếu người dùng truyền "auto" hoặc không truyền gì, tự động quét mọi mạng LAN
+      if (!subnetBase || subnetBase === 'auto') {
+        results = await this.discoveryService.scanAllLocalSubnets();
+      } else {
+        // Quét đúng 1 dải IP do người dùng chỉ định
+        results = await this.discoveryService.scanSubnet(subnetBase);
       }
-      const results = await this.discoveryService.scanSubnet(subnetBase);
-      res.status(200).json({ success: true, message: 'Hoàn tất quét', data: results });
+      
+      res.status(200).json({ success: true, message: 'Hoàn tất quét mạng', data: results });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
     }
@@ -74,7 +78,7 @@ export class DeviceController {
       const { metricType } = req.query;
 
       if (!metricType) {
-        res.status(400).json({ success: false, message: 'Phải truyền metricType (RAM hoặc CPU) để AI phân tích' });
+        res.status(400).json({ success: false, message: 'Phải truyền metricType' });
         return;
       }
 
