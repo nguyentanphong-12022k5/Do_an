@@ -44,27 +44,34 @@ export class DeviceController {
     }
   }
 
-  // API Ứng dụng AI phân tích dự báo thiết bị
+  // API lấy dữ liệu lịch sử để Frontend vẽ biểu đồ (Chart)
+  public async getDeviceMetrics(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const metricType = (req.query.metricType as string) || 'CPU';
+      const limit = parseInt((req.query.limit as string) || '30'); // Mặc định lấy 30 điểm gần nhất
+
+      const history = await this.metricRepo.getMetricsHistory(id, metricType, limit);
+      res.status(200).json({ success: true, data: history });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
   public async predictDeviceExhaustion(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const { metricType } = req.query; // Ví dụ: ?metricType=RAM
+      const { metricType } = req.query;
 
       if (!metricType) {
         res.status(400).json({ success: false, message: 'Phải truyền metricType (RAM hoặc CPU) để AI phân tích' });
         return;
       }
 
-      // 1. Kéo 100 điểm dữ liệu thời gian gần nhất của máy này lên
       const historicalData = await this.metricRepo.getMetricsHistory(id, metricType as string, 100);
-      
-      // 2. Nạp vào mô hình Machine Learning dự báo
       const prediction = this.aiService.predictExhaustion(historicalData);
       
-      res.status(200).json({
-        success: true,
-        data: prediction
-      });
+      res.status(200).json({ success: true, data: prediction });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
     }
