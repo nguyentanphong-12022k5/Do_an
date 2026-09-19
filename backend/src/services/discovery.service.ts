@@ -52,10 +52,10 @@ export class DiscoveryService {
         // Nếu chưa có -> TỰ ĐỘNG THÊM VÀO DATABASE
         const newDevice = await this.deviceRepo.create({
           name: deviceName,
-          ipAddress: ip,
+          ip_address: ip,
           type: 'LINUX',
-          snmpCommunity: 'public',
-          sshUser: 'root'
+          snmp_community: 'public',
+          ssh_user: 'root'
         });
         return { ip, name: deviceName, status: 'MỚI: Đã tự động thêm', data: newDevice };
       } else {

@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export class EmailService {
-  private transporter: nodemailer.Transporter;
+  private transporter: any;
 
   constructor() {
     this.transporter = nodemailer.createTransport({
