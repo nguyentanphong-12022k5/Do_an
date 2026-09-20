@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Activity, Server, ShieldCheck, ShieldAlert, X, Trash2 } from 'lucide-react';
+import { Activity, Server, ShieldCheck, ShieldAlert, X, Trash2, Bell, BellOff } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 function App() {
@@ -39,6 +39,20 @@ function App() {
           console.error("Lỗi xóa thiết bị:", error);
           alert('Có lỗi xảy ra khi xóa thiết bị!');
         });
+    }
+  };
+
+  // Nút Tắt/Bật chuông thông báo
+  const handleToggleMute = (id: string, name: string, currentStatus: boolean) => {
+    const action = currentStatus ? "BẬT" : "TẮT";
+    if (window.confirm(`Bạn có muốn ${action} thông báo Email cho thiết bị "${name}"?`)) {
+      axios.patch(`http://localhost:3000/api/v1/devices/${id}/mute`)
+        .then(response => {
+           if(response.data.success) {
+             fetchDevices();
+           }
+        })
+        .catch(err => alert('Lỗi cập nhật trạng thái thông báo!'));
     }
   };
 
@@ -86,16 +100,27 @@ function App() {
           devices.map((device: any) => (
             <div key={device.id} style={{ position: 'relative', backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', borderLeft: device.status === 'UP' ? '4px solid #10b981' : '4px solid #ef4444', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
               
-              {/* Nút Xóa (Góc trên bên phải) */}
-              <button 
-                onClick={() => handleDeleteDevice(device.id, device.name)}
-                style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}
-                title="Xóa thiết bị này"
-              >
-                <Trash2 size={20} className="hover:text-red-500" />
-              </button>
+              {/* Nút Chuông (Góc trên bên phải) */}
+              <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', gap: '8px' }}>
+                <button 
+                  onClick={() => handleToggleMute(device.id, device.name, device.mute_alerts)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: device.mute_alerts ? '#ef4444' : '#10b981' }}
+                  title={device.mute_alerts ? "Đang tắt thông báo (Bấm để bật lại)" : "Đang bật thông báo (Bấm để tắt)"}
+                >
+                  {device.mute_alerts ? <BellOff size={20} /> : <Bell size={20} />}
+                </button>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingRight: '2rem' }}>
+                {/* Nút Xóa */}
+                <button 
+                  onClick={() => handleDeleteDevice(device.id, device.name)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}
+                  title="Xóa thiết bị này"
+                >
+                  <Trash2 size={20} className="hover:text-red-500" />
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingRight: '4rem' }}>
                 <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', color: '#111827' }}>
                   <Server size={20} color="#4b5563" />
                   {device.name}
@@ -152,6 +177,7 @@ function App() {
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
               <button onClick={() => fetchChartData(selectedDevice.id, 'CPU')} style={{ padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', backgroundColor: metricType === 'CPU' ? '#2563eb' : '#e5e7eb', color: metricType === 'CPU' ? 'white' : 'black' }}>Biểu đồ CPU (%)</button>
               <button onClick={() => fetchChartData(selectedDevice.id, 'RAM')} style={{ padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', backgroundColor: metricType === 'RAM' ? '#2563eb' : '#e5e7eb', color: metricType === 'RAM' ? 'white' : 'black' }}>Biểu đồ RAM (%)</button>
+              <button onClick={() => fetchChartData(selectedDevice.id, 'PING')} style={{ padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', backgroundColor: metricType === 'PING' ? '#2563eb' : '#e5e7eb', color: metricType === 'PING' ? 'white' : 'black' }}>Biểu đồ PING (ms)</button>
             </div>
 
             <div style={{ height: '300px', width: '100%' }}>
@@ -159,9 +185,9 @@ function App() {
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                   <XAxis dataKey="timeLabel" tick={{ fontSize: 12, fill: '#6b7280' }} />
-                  <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#6b7280' }} />
+                  <YAxis domain={metricType === 'PING' ? ['auto', 'auto'] : [0, 100]} tick={{ fontSize: 12, fill: '#6b7280' }} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="value" stroke={metricType === 'CPU' ? '#2563eb' : '#10b981'} strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                  <Line type="monotone" dataKey="value" stroke={metricType === 'CPU' ? '#2563eb' : (metricType === 'RAM' ? '#10b981' : '#f59e0b')} strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>

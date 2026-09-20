@@ -29,10 +29,13 @@ export class DeviceRepository {
 
   // Hàm xóa thiết bị mới được thêm vào
   public async delete(id: string): Promise<boolean> {
-    // 1. Phải xóa tất cả lịch sử biểu đồ (metrics) của thiết bị này trước để tránh lỗi Khóa ngoại (Foreign Key)
     await db.query('DELETE FROM metrics WHERE device_id = $1', [id]);
-    // 2. Xóa thiết bị khỏi bảng devices
     const result = await db.query('DELETE FROM devices WHERE id = $1', [id]);
     return (result.rowCount ?? 0) > 0;
+  }
+
+  // Hàm Bật/Tắt thông báo
+  public async updateMuteStatus(id: string, mute: boolean): Promise<void> {
+    await db.query('UPDATE devices SET mute_alerts = $1 WHERE id = $2', [mute, id]);
   }
 }

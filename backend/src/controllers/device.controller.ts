@@ -40,6 +40,16 @@ export class DeviceController {
     }
   }
 
+  public async toggleMuteDevice(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const newStatus = await this.deviceService.toggleMute(id);
+      res.status(200).json({ success: true, message: 'Đã cập nhật trạng thái thông báo', mute_alerts: newStatus });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
   public async scanNetwork(req: Request, res: Response): Promise<void> {
     try {
       const { subnetBase } = req.body;

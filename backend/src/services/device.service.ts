@@ -33,4 +33,13 @@ export class DeviceService {
       throw new Error('Không tìm thấy thiết bị để xóa hoặc đã bị xóa trước đó.');
     }
   }
+
+  public async toggleMute(id: string): Promise<boolean> {
+    const device = await this.deviceRepository.findById(id);
+    if (!device) throw new Error('Không tìm thấy thiết bị');
+    
+    const newMuteStatus = !device.mute_alerts;
+    await this.deviceRepository.updateMuteStatus(id, newMuteStatus);
+    return newMuteStatus;
+  }
 }

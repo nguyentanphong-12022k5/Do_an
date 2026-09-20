@@ -49,7 +49,11 @@ export class PollerWorker {
                  if (snmpData.cpuUsagePercent > 90) {
                     const cacheKey = `${device.id}_cpu`;
                     if (!this.alertCache.get(cacheKey)) {
-                       await this.emailService.sendAlert(device.name, device.ip_address, `CPU quá tải nghiêm trọng (${snmpData.cpuUsagePercent}%)`);
+                       if (!device.mute_alerts) {
+                          await this.emailService.sendAlert(device.name, device.ip_address, `CPU quá tải nghiêm trọng (${snmpData.cpuUsagePercent}%)`);
+                       } else {
+                          console.log(`🔕 Bỏ qua gửi Email CPU cho ${device.name} vì đang Tắt thông báo.`);
+                       }
                        this.alertCache.set(cacheKey, true); // Đánh dấu đã gửi Email
                     }
                  } else {
@@ -71,7 +75,11 @@ export class PollerWorker {
             // KỊCH BẢN CẢNH BÁO EMAIL: Thiết bị mất mạng
             const cacheKey = `${device.id}_down`;
             if (!this.alertCache.get(cacheKey)) {
-                await this.emailService.sendAlert(device.name, device.ip_address, 'Thiết bị mất kết nối mạng (Tắt nguồn hoặc Rớt mạng)');
+                if (!device.mute_alerts) {
+                   await this.emailService.sendAlert(device.name, device.ip_address, 'Thiết bị mất kết nối mạng (Tắt nguồn hoặc Rớt mạng)');
+                } else {
+                   console.log(`🔕 Bỏ qua gửi Email cho ${device.name} vì đang bật chế độ Tắt thông báo.`);
+                }
                 this.alertCache.set(cacheKey, true); // Đánh dấu đã gửi Email
             }
           }
